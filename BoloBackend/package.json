@@ -1,0 +1,33 @@
+{
+  "name": "bolo-app-backend",
+  "version": "1.0.0",
+  "description": "Backend for voice-data webapp (Node + Express + MongoDB)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "lint": "eslint . --ext .js",
+    "test": "echo \"no tests yet\""
+  },
+  "dependencies": {
+    "axios": "^1.13.2",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.8.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.3.1",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "multer-storage-cloudinary": "^2.2.1",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.50.0",
+    "nodemon": "^3.1.11"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
