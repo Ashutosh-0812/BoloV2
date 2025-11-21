@@ -11,8 +11,8 @@ ffmpeg.setFfmpegPath('C:\\Users\\sharm\\AppData\\Local\\Microsoft\\WinGet\\Packa
 function trimSilence(inputPath, outputPath) {
     return new Promise((resolve, reject) => {
         ffmpeg(inputPath)
-            .audioFilters('silenceremove=start_periods=1:start_silence=0.1:start_threshold=-50dB:stop_periods=1:stop_silence=0.1:stop_threshold=-50dB')
-            .on('end', () => resolve(outputPath))
+            .audioFilters('silenceremove=stop_periods=-1:stop_duration=1:stop_threshold=-50dB')
+            .on('end', () => resolve())
             .on('error', reject)
             .save(outputPath);
     });
