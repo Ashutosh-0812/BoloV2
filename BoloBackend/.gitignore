@@ -29,6 +29,10 @@ Thumbs.db
 uploads/*
 !uploads/.gitkeep
 
+# Seed data audio files (keep structure, not files)
+seed-data/recordings/*
+!seed-data/recordings/.gitkeep
+
 # Build files
 dist/
 build/

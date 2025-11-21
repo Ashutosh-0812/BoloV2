@@ -23,3 +23,16 @@ exports.listTasks = async (req, res) => {
   const tasks = await Task.find({ status: 'active' }).sort({ createdAt: -1 }).limit(100);
   response.success(res, tasks);
 };
+
+exports.deleteTask = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return response.error(res, 'Task not found', 404);
+    
+    await Task.findByIdAndDelete(req.params.id);
+    response.success(res, { message: 'Task deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    response.error(res, 'Failed to delete task');
+  }
+};

@@ -9,7 +9,10 @@ const LogSchema = new mongoose.Schema({
   deviceToken: { type: String },
   otp: { type: String },
   status: { type: String }, // pending, verified
-  expiresAt: { type: Date }
+  expiresAt: { type: Date },
+  createdAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true // Automatically adds createdAt and updatedAt
 });
 
 module.exports = mongoose.model('Log', LogSchema);

@@ -3,9 +3,17 @@ const { JWT_SECRET } = require('../config/env');
 const User = require('../models/User');
 
 const authMiddleware = async (req, res, next) => {
+  // Check Authorization header first, then cookies
   const authHeader = req.headers.authorization || '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  let token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  
+  // If no token in header, check cookies
+  if (!token && req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
+  
   if (!token) return res.status(401).json({ error: 'No token provided' });
+  
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = await User.findById(decoded.id);

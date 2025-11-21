@@ -45,8 +45,19 @@ exports.verifyOTP = async (req, res) => {
     // find last pending log
     const log = await Log.findOne({ userID: user._id, status: 'pending' }).sort({ createdAt: -1 });
     if (!log) return response.error(res, 'OTP not requested', 400);
-    if (log.expiresAt < new Date()) return response.error(res, 'OTP expired', 400);
-    if (log.otp !== otp) return response.error(res, 'Invalid OTP', 400);
+    
+    // Check expiration
+    const now = new Date();
+    if (log.expiresAt < now) {
+      console.log(`OTP expired. Expires: ${log.expiresAt}, Now: ${now}`);
+      return response.error(res, 'OTP expired', 400);
+    }
+    
+    // Check OTP match
+    if (log.otp !== otp) {
+      console.log(`OTP mismatch. Expected: ${log.otp}, Received: ${otp}`);
+      return response.error(res, 'Invalid OTP', 400);
+    }
 
     // mark verified
     log.status = 'verified';
@@ -55,9 +66,34 @@ exports.verifyOTP = async (req, res) => {
     // issue JWT
     const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
+    // Set token in httpOnly cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
     return response.success(res, { token, user });
   } catch (err) {
     console.error(err);
     return response.error(res, 'Failed to verify OTP');
+  }
+};
+
+// Logout: POST /api/auth/logout
+exports.logout = async (req, res) => {
+  try {
+    // Clear the cookie
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
+    
+    return response.success(res, { message: 'Logged out successfully' });
+  } catch (err) {
+    console.error(err);
+    return response.error(res, 'Failed to logout');
   }
 };

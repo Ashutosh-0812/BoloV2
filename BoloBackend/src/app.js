@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const { morgan: logger } = require('./utils/logger');
 
 const authRoutes = require('./routes/auth.routes');
@@ -11,9 +12,13 @@ const recordingRoutes = require('./routes/recording.routes');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(morgan('dev')); // use morgan for HTTP logs
 
 app.get('/', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }));
