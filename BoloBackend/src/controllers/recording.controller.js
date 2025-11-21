@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const cloudinary = require('../config/cloudinary');
-const { transcribeFromFile } = require('../services/transcription.service');
+const { processAudioForASR } = require('../services/asr.service');
 const { scoreTranscript } = require('../services/scoring.service');
 const Recording = require('../models/Recording');
 const response = require('../utils/response');
@@ -23,7 +23,7 @@ exports.uploadRecording = async (req, res) => {
 
     // Create recording metadata
     const recData = {
-      userID: req.user._id,
+      userID: req.user ? req.user._id : '507f1f77bcf86cd799439011', // Dummy userID for testing without auth
       taskID: req.body.taskID || null,
       audioURL: uploaded.secure_url,
       duration: req.body.duration || null,
@@ -33,13 +33,17 @@ exports.uploadRecording = async (req, res) => {
 
     const recording = await Recording.create(recData);
 
-    // Transcribe (stub)
+    // ASR: Transcribe audio, chunked with timestamps
+    let transcriptJson = [];
     let transcript = '';
     try {
-      transcript = await transcribeFromFile(localPath);
-      recording.transcript = transcript;
+      transcriptJson = await processAudioForASR(localPath);
+      recording.transcript = JSON.stringify(transcriptJson);
+      transcript = recording.transcript;
     } catch (err) {
-      console.warn('Transcription failed:', err.message || err);
+      console.warn('ASR transcription failed:', err.message || err);
+      recording.transcript = '';
+      transcript = '';
     }
 
     // score

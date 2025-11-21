@@ -3,6 +3,8 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 
+console.log('uploadMiddleware loaded'); // Debug
+
 // store file locally first in uploads/, then controller will push to Cloudinary
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -16,13 +18,6 @@ const storage = multer.diskStorage({
   }
 });
 
-const fileFilter = (req, file, cb) => {
-  // allow common audio types + images if needed
-  const allowedMime = ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/mp3', 'audio/x-m4a', 'image/jpeg', 'image/png'];
-  if (allowedMime.includes(file.mimetype)) cb(null, true);
-  else cb(new Error('Unsupported file type'), false);
-};
+const upload = multer({ storage, limits: { fileSize: 500 * 1024 * 1024 } }); // 500MB limit for large audio files
 
-const upload = multer({ storage, fileFilter, limits: { fileSize: 50 * 1024 * 1024 } }); // 50MB
-
-module.exports = upload;
+module.exports = upload; // test

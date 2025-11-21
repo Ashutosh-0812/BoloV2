@@ -1,10 +1,24 @@
 const Task = require('../models/Task');
 const response = require('../utils/response');
+const { extractTextFromImage } = require('../services/ocr.service');
+const path = require('path');
 
 exports.createTask = async (req, res) => {
   try {
     const payload = req.body;
     payload.createdBy = req.user._id;
+    // If image is uploaded, extract text using OCR
+    if (req.file && req.file.mimetype.startsWith('image/')) {
+      try {
+        // OCR expects local file path
+        const ocrText = await extractTextFromImage(req.file.path);
+        payload.textImage = ocrText;
+      } catch (ocrErr) {
+        console.error('OCR error:', ocrErr.message);
+        // Optionally, you can fail or continue without textImage
+        payload.textImage = '';
+      }
+    }
     const task = await Task.create(payload);
     response.success(res, task, 201);
   } catch (err) {
