@@ -556,7 +556,3 @@ Install "REST Client" extension and create a `.http` file with requests.
 4. **Create Task** → Test admin/moderator role
 5. **Upload Recording** → Test file upload
 6. **Logout** → Clear cookie
-
----
-
-**Happy Testing! 🎉**
