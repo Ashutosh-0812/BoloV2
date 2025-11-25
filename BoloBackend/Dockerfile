@@ -1,4 +1,3 @@
-
 # Use a Node.js base image
 FROM node:18-alpine
 
@@ -24,3 +23,6 @@ EXPOSE 8080
 
 # Command to run your application
 CMD ["npm", "start"]
+
+# Build the image
+# docker build -t bolobackend .
