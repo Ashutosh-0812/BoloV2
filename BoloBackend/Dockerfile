@@ -5,13 +5,16 @@ FROM node:18-alpine
 # Set the working directory inside the container
 WORKDIR /
 
+
 # Copy package.json and package-lock.json first
 # This allows Docker to use the cache if dependencies don't change
 COPY package*.json ./
 
+# Optionally downgrade npm for compatibility (uncomment if needed)
+# RUN npm install -g npm@6
 
-# Clean npm cache and install dependencies
-RUN npm cache clean --force && npm install
+# Clean npm cache and install dependencies using npm ci for clean builds
+RUN npm cache clean --force && npm ci
 
 # Copy the rest of your application code
 COPY . .
