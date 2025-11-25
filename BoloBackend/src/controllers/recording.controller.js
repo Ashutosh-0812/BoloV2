@@ -1,8 +1,15 @@
+// API to check scoring system directly
+exports.checkScore = (req, res) => {
+  const { transcript = '', article = '', duration = 0 } = req.body;
+  const scoring = scoreTranscript(transcript, article, Number(duration));
+  response.success(res, scoring);
+};
 const fs = require('fs');
 const path = require('path');
 const cloudinary = require('../config/cloudinary');
 const { processAudioForASR } = require('../services/asr.service');
 const { scoreTranscript } = require('../services/scoring.service');
+const Task = require('../models/Task');
 const Recording = require('../models/Recording');
 const response = require('../utils/response');
 
@@ -33,13 +40,27 @@ exports.uploadRecording = async (req, res) => {
 
     const recording = await Recording.create(recData);
 
+    // Fetch article text from Task
+    let articleText = '';
+    if (recData.taskID) {
+      const task = await Task.findById(recData.taskID);
+      if (task && task.text) articleText = task.text;
+    }
+
     // ASR: Transcribe audio, chunked with timestamps
     let transcriptJson = [];
     let transcript = '';
     try {
       transcriptJson = await processAudioForASR(localPath);
-      recording.transcript = JSON.stringify(transcriptJson);
-      transcript = recording.transcript;
+      // If transcriptJson is an array of segments, join their text
+      if (Array.isArray(transcriptJson)) {
+        transcript = transcriptJson.map(seg => seg.text || '').join(' ');
+      } else if (typeof transcriptJson === 'string') {
+        transcript = transcriptJson;
+      } else {
+        transcript = '';
+      }
+      recording.transcript = transcript;
     } catch (err) {
       console.warn('ASR transcription failed:', err.message || err);
       recording.transcript = '';
@@ -47,20 +68,30 @@ exports.uploadRecording = async (req, res) => {
     }
 
     // score
-    const scoring = scoreTranscript(transcript);
+    const audioDuration = Number(recData.duration) || 0;
+    const scoring = scoreTranscript(transcript, articleText, audioDuration);
     recording.score = scoring.score;
     recording.emotion = scoring.emotion;
     recording.points = scoring.points;
     recording.accent = scoring.accent;
     recording.dialect = scoring.dialect;
     recording.status = 'verified';
+    // Store new metrics
+    recording.totalWords = scoring.totalWords;
+    recording.uniqueWords = scoring.uniqueWords;
+    recording.newWords = scoring.newWords;
+    recording.audioDuration = scoring.audioDuration;
 
     await recording.save();
 
     // remove local file
     try { fs.unlinkSync(localPath); } catch (e) {}
 
-    response.success(res, recording, 201);
+    // Return all metrics in response
+    response.success(res, {
+      ...recording.toObject(),
+      scoring
+    }, 201);
   } catch (err) {
     console.error(err);
     response.error(res, 'Failed to upload recording');

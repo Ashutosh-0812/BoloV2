@@ -323,6 +323,39 @@ Authorization: Bearer <your_token>
 
 **⚠️ All recording endpoints require authentication**
 
+
+### Check Scoring System (Test API)
+```http
+POST http://localhost:4000/api/recordings/score/check
+Content-Type: application/json
+
+{
+  "transcript": "your transcript text here",
+  "article": "the news article text here",
+  "duration": 120
+}
+```
+
+**Expected Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "score": 67,
+    "audioDuration": 120,
+    "totalWords": 12,
+    "uniqueWords": 10,
+    "newWords": 3,
+    "emotion": "neutral",
+    "points": 6,
+    "accent": "detected-accent",
+    "dialect": "detected-dialect"
+  }
+}
+```
+
+---
+
 ### Upload Recording
 ```http
 POST http://localhost:4000/api/recordings/upload
