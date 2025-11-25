@@ -9,8 +9,9 @@ WORKDIR /
 # This allows Docker to use the cache if dependencies don't change
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+
+# Clean npm cache and install dependencies
+RUN npm cache clean --force && npm install
 
 # Copy the rest of your application code
 COPY . .
