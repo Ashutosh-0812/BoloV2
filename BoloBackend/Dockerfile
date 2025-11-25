@@ -1,30 +1,22 @@
-# Multi-stage build for Node.js backend
-FROM node:18-alpine AS base
 
-# Install ffmpeg for audio processing
-RUN apk add --no-cache ffmpeg
+# Use a Node.js base image
+FROM node:18-alpine
 
-# Set working directory
-WORKDIR /app
+# Set the working directory inside the container
+WORKDIR /
 
-# Copy package files
+# Copy package.json and package-lock.json first
+# This allows Docker to use the cache if dependencies don't change
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm install
 
-# Copy application code
+# Copy the rest of your application code
 COPY . .
 
-# Create uploads directory
-RUN mkdir -p uploads seed-data/recordings
+# Expose the port your application runs on
+EXPOSE 8080
 
-# Expose port
-EXPOSE 4000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:4000/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
-
-# Start application
+# Command to run your application
 CMD ["npm", "start"]
